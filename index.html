@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+
+    <title>Music Registry</title>
+  </head>
+  <body style="
+    background-color:#d2691e;
+    padding: 2em;">
+    <div class="container">
+      <div class="row">
+        <div class="col-4" color="light blue" style="margin: 0 auto;">
+        <h1>Timestamp your musical creations</h1>
+
+          <div id="notification" class="alert alert-secondary" role="alert">
+            <b>Welcome!</b> <br>Here you can <br><mark>register your music on the Blockchain,</mark> <br>in order to prove your creative primacy
+          </div>
+
+          <!-- Display area of track and track info -->
+          <figure class="figure">
+            <!-- Display track here through img url -->
+            <img id="" src="" class="figure-img img-fluid rounded">
+            <figcaption class="figure-caption">
+              <!-- Display name of track creator here -->
+              <h5 id="CreatorName"></h5>
+              <!-- Display time of track registration here -->
+              <p id="timeproof"></p>
+            </figcaption>
+          </figure>
+
+          <!-- Loader gif to indicate that something is happening when we make call or insert to blockchain -->
+          <br>
+          <img id="loader" style="width:8em; display:none;" src="https://cdn-images-1.medium.com/max/1600/0*QdX-f4eHiimvQZoZ.gif">
+
+
+          <!-- Input fields to register track -->
+
+          <!-- Input of track url to register -->
+          <div class="form-group">
+            <label for="url">Music track URL</label>
+            <input type="text" class="form-control" id="url" placeholder="Enter the url of a track you'd like to register">
+          </div>
+
+          <!-- Input of user name to register-->
+          <div class="form-group">
+            <label for="name">Artist Name</label>
+            <input type="text" class="form-control" id="name" placeholder="Enter your artist name">
+          </div>
+
+          <button id="RegisterButton" class="btn btn-outline-dark">Register new music track</button>
+          <br><br>
+
+          <!-- Input field to get a track from blockchain -->
+          <div class="form-group">
+            <label for="geturl">Find url</label>
+            <input type="text" class="form-control" id="geturl" placeholder="Type the URL of the track you'd like to check">
+          </div>
+
+          <button id="GetButton" class="btn btn-outline-dark">Get Track by URL</button>
+
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+
+    <script>
+
+      window.addEventListener('load', async () => {
+            // Modern dapp browsers...
+            if (window.ethereum) {
+                window.web3 = new Web3(ethereum);
+                try {
+                    // Request account access if needed
+                    await ethereum.enable();
+                    // Acccounts now exposed
+                    web3.eth.defaultAccount = web3.eth.accounts[0];
+                    console.log(web3.eth.defaultAccount);
+                } catch (error) {
+                    // User denied account access...
+                }
+            }
+            // Legacy dapp browsers...
+            else if (window.web3) {
+                window.web3 = new Web3(web3.currentProvider);
+                // Acccounts always exposed
+            }
+            // Non-dapp browsers...
+            else {
+                console.log('Non-Ethereum browser detected. You should consider trying MetaMask!');
+            }
+        });
+
+        var contract = web3.eth.contract([
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_url",
+				"type": "string"
+			},
+			{
+				"name": "_name",
+				"type": "string"
+			}
+		],
+		"name": "setTrackcert",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"name": "timestamp",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"name": "url",
+				"type": "string"
+			}
+		],
+		"name": "trackCertInfo",
+		"type": "event"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "_url",
+				"type": "string"
+			}
+		],
+		"name": "getTrackcert",
+		"outputs": [
+			{
+				"name": "",
+				"type": "string"
+			},
+			{
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	}
+        ]);
+
+        var contractAtAddress = contract.at('0x88f64006014b385658dc61821f43955052060c63');
+        console.log(contractAtAddress);
+
+        //This part is for the registration on the blockchain
+        $("#RegisterButton").click(function() {
+          // display loading gif
+          $("#loader").show();
+
+          contractAtAddress.setTrackcert($("#url").val(), $("#name").val(), (err, res) => {
+             if (err) {
+                 $("#loader").hide();
+                $("#notification").attr("class","alert alert-danger");
+                $("#notification").html('Your track was not registered');
+
+             }
+          });
+        });
+
+        //watch for changes on event
+        var Event = contractAtAddress.trackCertInfo({}, 'latest');
+        Event.watch(function(error, result) {
+          //If you get a result hide loader, display result and notification
+          console.log(result);
+          if (result) {
+            $("#loader").hide();
+            $("#trackCreatorName").html('by '+(result.args.name));
+            $("#timeproof").html('registered on '+ new Date((result.args.timestamp['c'][0])*1000));
+            $("#track").attr("src", (result.args.url));
+            $("#notification").attr("class","alert alert-success");
+            $("#notification").html('Your track is now registered');
+
+          } else {
+            $("#loader").hide();
+            $("#track").attr("src", (""));
+            $("#notification").attr("class","alert alert-danger");
+            $("#notification").html('Your track was not sucessfull registered');
+
+          }
+        });
+
+        //This part is for the call to the blockchain
+    		$("#GetButton").click(function() {
+
+    			$("#loader").show();
+
+    			contractAtAddress.getTrackcert($("#geturl").val(), (err, res) => {
+    				if (res[0]) {
+    					$("#loader").hide();
+    					$("#TrackCreatorName").html('by '+res[0]);
+    					$("#timeproof").html('registered on '+ new Date((res[1]['c'][0])*1000));
+    					$("#track").attr("src",$("#geturl").val());
+    					$("#notification").attr("class","alert alert-success");
+    					$("#notification").html('Track was registered');
+
+    				} else {
+    					$("#loader").hide();
+    					$("#track").attr("src", (""));
+    					$("#TrackCreatorName").html("");
+    					$("#timeproof").html("");
+
+    					$("#notification").attr("class","alert alert-secondary");
+    					$("#notification").html('Track not yet registered');
+    				}
+    			});
+    		});
+
+      </script>
+
+      <!-- Optional JavaScript -->
+      <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+      <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+    </body>
+  </html>
