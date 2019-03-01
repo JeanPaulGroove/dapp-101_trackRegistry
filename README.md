@@ -1,9 +1,9 @@
 # dapp-101_trackRegistry
-Register your musical creations on the blockchain
 
-Proving your creative primacy, by sending yourself a physical copy of your music per sealed registered mail is so yesterday..!
+Register your musical creations on the blockchain.
 
-With Track Registry, you can register URLs of your latest tracks directly on the Ethereum blockchain.
+The old days of proving your creative precedency by sending yourself a physical copy of your music per sealed registered mail are over..!
 
-These timestamped URLs to your music creations are linked to your artist name, and will remain forever in the blockchain with
-the decentralized world as a witness!
+With Track Registry, you can register URLs of your latest tracks linked to your artist name and timestamped on the Ethereum blockchain straight away. 
+
+This proof of anteriority remains engraved on the blockchain, with the decentralized world as witness!
